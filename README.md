@@ -1,4 +1,4 @@
-# Operations Performance Dashboard — full-stack practice project
+# Operations Performance Dashboard: full-stack practice project
 
 A runnable teaching example demonstrating **Python data preparation → SQLite/SQL → Java Spring Boot REST APIs → React/TypeScript dashboard**. All data are synthetic. This is NOT a reproduction of proprietary employer code or a claim about work completed at a previous company.
 
