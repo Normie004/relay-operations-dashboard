@@ -1,0 +1,19 @@
+id,week,category,status,effort_hours
+1,2026-10-05,Onboarding,Completed,3.5
+2,2026-10-05,Onboarding,Open,2.0
+3,2026-10-05,Technical Support,Completed,1.5
+4,2026-10-05,Reporting,Completed,4.0
+5,2026-10-05,Integrations,Open,6.0
+6,2026-10-12,Onboarding,Completed,3.0
+7,2026-10-12,Technical Support,Completed,2.5
+8,2026-10-12,Technical Support,Open,5.0
+9,2026-10-12,Reporting,Completed,2.0
+10,2026-10-12,Integrations,Completed,7.0
+11,2026-10-19,Onboarding,Completed,1.0
+12,2026-10-19,Onboarding,Open,4.0
+13,2026-10-19,Technical Support,Completed,2.0
+14,2026-10-19,Reporting,Open,3.0
+15,2026-10-19,Integrations,Completed,4.5
+16,2026-10-26,Onboarding,Completed,3.5
+17,2026-10-26,Reporting,Completed,2.0
+18,2026-10-26,Integrations,Open,5.0
