@@ -31,36 +31,51 @@ public class DashboardRepository {
     public record CategoryRow(String category, long total, long completed) {}
     public record WeekRow(String week, long total, long completed) {}
 
+    public record RequestRow(long id, String week, String category, String status, double effortHours) {}
+
     public Summary summary() throws SQLException {
+        return summary(null);
+    }
+
+    public Summary summary(String week) throws SQLException {
         String sql = """
                 SELECT COUNT(*) AS total,
                        COALESCE(SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END), 0) AS completed,
                        COALESCE(ROUND(AVG(effort_hours), 1), 0) AS avg_hours
-                FROM service_requests
+                FROM service_requests WHERE (?1 IS NULL OR week = ?1)
                 """;
         try (Connection conn = connection();
-             var stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            long total = rs.getLong("total");
-            long completed = rs.getLong("completed");
-            double rate = total == 0 ? 0 : Math.round(completed * 1000.0 / total) / 10.0;
-            return new Summary(total, completed, rate, rs.getDouble("avg_hours"));
+             var stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, week);
+            try (ResultSet rs = stmt.executeQuery()) {
+                rs.next();
+                long total = rs.getLong("total");
+                long completed = rs.getLong("completed");
+                double rate = total == 0 ? 0 : Math.round(completed * 1000.0 / total) / 10.0;
+                return new Summary(total, completed, rate, rs.getDouble("avg_hours"));
+            }
         }
     }
 
     public List<CategoryRow> byCategory() throws SQLException {
+        return byCategory(null);
+    }
+
+    public List<CategoryRow> byCategory(String week) throws SQLException {
         String sql = """
                 SELECT category, COUNT(*) AS total,
                        SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed
-                FROM service_requests
+                FROM service_requests WHERE (?1 IS NULL OR week = ?1)
                 GROUP BY category ORDER BY category
                 """;
         List<CategoryRow> rows = new ArrayList<>();
         try (Connection conn = connection();
-             var stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                rows.add(new CategoryRow(rs.getString("category"), rs.getLong("total"), rs.getLong("completed")));
+             var stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, week);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(new CategoryRow(rs.getString("category"), rs.getLong("total"), rs.getLong("completed")));
+                }
             }
         }
         return rows;
@@ -79,6 +94,28 @@ public class DashboardRepository {
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 rows.add(new WeekRow(rs.getString("week"), rs.getLong("total"), rs.getLong("completed")));
+            }
+        }
+        return rows;
+    }
+
+    public List<RequestRow> requests(String week, String status, String category) throws SQLException {
+        String sql = """
+                SELECT id, week, category, status, effort_hours FROM service_requests
+                WHERE (?1 IS NULL OR week = ?1) AND (?2 IS NULL OR status = ?2)
+                  AND (?3 IS NULL OR category = ?3)
+                ORDER BY week DESC, id
+                """;
+        List<RequestRow> rows = new ArrayList<>();
+        try (Connection conn = connection(); var stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, week);
+            stmt.setString(2, status);
+            stmt.setString(3, category);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(new RequestRow(rs.getLong("id"), rs.getString("week"), rs.getString("category"),
+                            rs.getString("status"), rs.getDouble("effort_hours")));
+                }
             }
         }
         return rows;
