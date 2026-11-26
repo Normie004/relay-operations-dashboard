@@ -1,5 +1,6 @@
 """Validate local CSV records and refresh the demo SQLite database."""
 import csv
+import math
 import sqlite3
 from datetime import date
 from pathlib import Path
@@ -15,8 +16,13 @@ def clean_row(row, line):
         week = date.fromisoformat(row["week"].strip()).isoformat()
         category = row["category"].strip()
         status = row["status"].strip()
-        effort_hours = float(row["effort_hours"])
-        if request_id <= 0 or not category or status not in {"Completed", "Open"} or effort_hours < 0:
+        try:
+            effort_hours = float(row["effort_hours"])
+        except (ValueError, TypeError) as error:
+            raise ValueError("effort_hours must be a number") from error
+        if not math.isfinite(effort_hours) or effort_hours < 0:
+            raise ValueError("effort_hours must be finite and nonnegative")
+        if request_id <= 0 or not category or status not in {"Completed", "Open"}:
             raise ValueError("invalid value")
         return (request_id, week, category, status, effort_hours)
     except (ValueError, TypeError, KeyError) as error:
